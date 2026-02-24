@@ -1,0 +1,71 @@
+<div class="card" id="lord-detail">Cargando…</div>
+<div class="card" id="power-index-block" style="display:none;"></div>
+<div class="card" id="alliances-block" style="display:none;"></div>
+<div class="card" id="betrayals-block" style="display:none;"></div>
+
+<script>
+  function run() {
+    if (typeof document === 'undefined') return;
+    const detailEl = document.getElementById('lord-detail');
+    if (!detailEl) return;
+    function escapeHtml(s) {
+      if (s == null) return '';
+      const div = document.createElement('div');
+      div.textContent = String(s);
+      return div.innerHTML;
+    }
+    const API = typeof __API_BASE__ !== 'undefined' ? __API_BASE__ : (import.meta.env?.VITE_API_URL || 'http://localhost:3000');
+    const id = document.location.pathname.split('/lords/')[1]?.replace(/\/.*/, '');
+    if (!id) {
+      detailEl.innerHTML = '<p class="error-msg">ID no válido.</p>';
+      return;
+    }
+    Promise.all([
+      fetch(`${API}/api/lords/${id}`).then((r) => (r.ok ? r.json() : null)),
+      fetch(`${API}/api/lords/${id}/power-index`).then((r) => (r.ok ? r.json() : null)),
+      fetch(`${API}/api/lords/${id}/alliances`).then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API}/api/lords/${id}/betrayals`).then((r) => (r.ok ? r.json() : [])),
+    ]).then(([lord, power, alliances, betrayals]) => {
+      const el = document.getElementById('lord-detail');
+      if (!el) return;
+      if (!lord) {
+        el.innerHTML = '<p class="error-msg">Lord no encontrado.</p>';
+        return;
+      }
+      el.innerHTML = `
+        <h2>${escapeHtml(lord.title || 'Lord')} ${escapeHtml(lord.name)}</h2>
+        <p><span class="house-badge">Casa ID: ${escapeHtml(lord.houseId)}</span></p>
+        <p><a href="/lords" class="nav-link">← Volver al listado</a></p>
+      `;
+
+      const powerEl = document.getElementById('power-index-block');
+      if (powerEl && power && power.powerIndex != null) {
+        powerEl.style.display = 'block';
+        powerEl.innerHTML = `
+          <h3>Índice de Poder</h3>
+          <p class="power-index">${power.powerIndex}</p>
+          <p>Base: ${power.breakdown?.base ?? '-'} | Alianzas: +${power.breakdown?.alliancesBonus ?? 0} | Traiciones: -${power.breakdown?.betrayalsPenalty ?? 0}</p>
+        `;
+      }
+
+      const allEl = document.getElementById('alliances-block');
+      if (allEl && Array.isArray(alliances) && alliances.length > 0) {
+        allEl.style.display = 'block';
+        allEl.innerHTML = `<h3>Alianzas</h3><ul>${alliances.map((a) => `<li>${escapeHtml(a.description || 'Alianza')} (target: ${escapeHtml(a.targetLordId)})</li>`).join('')}</ul>`;
+      }
+
+      const betEl = document.getElementById('betrayals-block');
+      if (betEl && Array.isArray(betrayals) && betrayals.length > 0) {
+        betEl.style.display = 'block';
+        betEl.innerHTML = `<h3>Traiciones</h3><ul>${betrayals.map((b) => `<li>${escapeHtml(b.description || 'Traición')} (target: ${escapeHtml(b.targetLordId)})</li>`).join('')}</ul>`;
+      }
+    }).catch((err) => {
+      const el = document.getElementById('lord-detail');
+      if (el) el.innerHTML = `<p class="error-msg">${escapeHtml(err.message)}</p>`;
+    });
+  }
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+    else run();
+  }
+</script>

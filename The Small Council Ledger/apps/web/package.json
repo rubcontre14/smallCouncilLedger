@@ -1,0 +1,15 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "marko-run dev",
+    "build": "marko-run build",
+    "preview": "marko-run preview"
+  },
+  "dependencies": {
+    "marko": "^5.35.0",
+    "@marko/run": "^0.9.0"
+  }
+}

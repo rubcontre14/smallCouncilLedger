@@ -1,0 +1,32 @@
+$ const apiBase = (typeof process !== 'undefined' && process.env && process.env.VITE_API_URL) ? process.env.VITE_API_URL : 'http://localhost:3000';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>${input.title || 'The Small Council Ledger'}</title>
+  <script>window.__API_BASE__ = ${JSON.stringify(apiBase)};</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet"/>
+  <link href="/src/styles/theme.css" rel="stylesheet"/>
+</head>
+<body class="parchment" data-api-base="${apiBase}">
+  <header class="ledger-header">
+    <h1 class="ledger-title">The Small Council Ledger</h1>
+    <p class="ledger-subtitle">Lealtades y traiciones de los Siete Reinos</p>
+    <nav class="ledger-nav">
+      <a href="/" class="nav-link">Inicio</a>
+      <a href="/houses" class="nav-link">Casas</a>
+      <a href="/lords" class="nav-link">Lords &amp; Ladies</a>
+      <a href="/lords/new" class="nav-link">Nuevo Lord</a>
+    </nav>
+  </header>
+  <main class="ledger-main">
+    <${input.renderBody}/>
+  </main>
+  <footer class="ledger-footer">
+    <p>El Trono de Hierro recuerda. — Gestión de alianzas y traiciones.</p>
+  </footer>
+</body>
+</html>

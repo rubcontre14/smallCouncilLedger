@@ -1,0 +1,69 @@
+<div class="card">
+  <h2>Lords y Ladies</h2>
+  <p><a href="/lords/new" class="nav-link">Registrar nuevo Lord o Lady</a></p>
+</div>
+<div id="lords-list">Cargando lords…</div>
+
+<script>
+  function getApiBase() {
+    if (typeof window !== 'undefined' && window.__API_BASE__) return window.__API_BASE__;
+    var body = document.body;
+    if (body && body.getAttribute) {
+      var base = body.getAttribute('data-api-base');
+      if (base) return base;
+    }
+    return 'http://localhost:3000';
+  }
+  function escapeHtml(s) {
+    if (s == null) return '';
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+  function run() {
+    if (typeof document === 'undefined') return;
+    var el = document.getElementById('lords-list');
+    if (!el) return;
+    var API = getApiBase();
+    el.textContent = 'Cargando lords…';
+    Promise.all([
+      fetch(API + '/api/houses', { method: 'GET', headers: { Accept: 'application/json' } }).then(function(r) { return r.ok ? r.json() : []; }),
+      fetch(API + '/api/lords', { method: 'GET', headers: { Accept: 'application/json' } }).then(function(r) {
+        if (!r.ok) throw new Error('API respondió ' + r.status);
+        return r.json();
+      }),
+    ])
+      .then(function(results) {
+        var houses = results[0];
+        var lords = results[1];
+        el = document.getElementById('lords-list');
+        if (!el) return;
+        var housesById = {};
+        if (Array.isArray(houses)) {
+          for (var h = 0; h < houses.length; h++) {
+            if (houses[h] && houses[h].id) housesById[houses[h].id] = houses[h].name;
+          }
+        }
+        if (!Array.isArray(lords) || lords.length === 0) {
+          el.innerHTML = '<p class="card">No hay lords registrados.</p>';
+          return;
+        }
+        var html = '<ul class="list-lords">';
+        for (var i = 0; i < lords.length; i++) {
+          var l = lords[i];
+          var houseName = (l.houseId && housesById[l.houseId]) ? housesById[l.houseId] : (l.houseId || '');
+          html += '<li class="card"><strong>' + escapeHtml(l.title || 'Lord') + ' ' + escapeHtml(l.name) + '</strong>';
+          if (houseName) html += ' <span class="house-badge">' + escapeHtml(houseName) + '</span>';
+          html += '</li>';
+        }
+        html += '</ul>';
+        el.innerHTML = html;
+      })
+      .catch(function(err) {
+        el = document.getElementById('lords-list');
+        if (el) el.innerHTML = '<p class="error-msg">' + escapeHtml(err.message) + '. ¿Está la API en marcha en ' + escapeHtml(API) + '?</p>';
+      });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+</script>

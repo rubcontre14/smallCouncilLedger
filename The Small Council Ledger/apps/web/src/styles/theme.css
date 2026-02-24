@@ -1,0 +1,517 @@
+/* The Small Council Ledger — Westeros: pergamino quemado, sellos de cera, sombras profundas */
+
+:root {
+  /* Paleta oscura Westeros */
+  --charcoal: #1a1614;
+  --charcoal-light: #2d2620;
+  --charcoal-warm: #252019;
+  --parchment-burned: #2a231c;
+  --parchment-edge: #1f1a16;
+  --wine: #4a1515;
+  --wine-deep: #3d0f0f;
+  --wine-light: #6b2222;
+  --blood: #8b2500;
+  --gold-old: #b8860b;
+  --gold-dim: #8b7355;
+  --gold-highlight: #d4af37;
+  --cream: #e8dfc8;
+  --cream-muted: #c4b89a;
+  --ink: #e8dfc8;
+  --ink-muted: #a89880;
+  --shadow-deep: 0 8px 24px rgba(0, 0, 0, 0.6), 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-seal: 0 6px 16px rgba(0, 0, 0, 0.7), 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-inset: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+  --font-stone: 'Cinzel', serif;
+  --font-decorative: 'Cinzel Decorative', serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.parchment {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-stone);
+  color: var(--ink);
+  background: var(--charcoal);
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% 0%, var(--charcoal-warm) 0%, var(--charcoal) 40%, var(--parchment-edge) 100%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
+.ledger-header {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  border-bottom: 3px solid var(--wine-deep);
+  background: linear-gradient(180deg, var(--charcoal-light) 0%, var(--charcoal) 50%, var(--parchment-burned) 100%);
+  box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(212, 175, 55, 0.08);
+}
+
+.ledger-title {
+  font-family: var(--font-decorative);
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 700;
+  color: var(--cream);
+  margin: 0 0 0.25rem 0;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 20px rgba(184, 134, 11, 0.2);
+}
+
+.ledger-subtitle {
+  font-size: 0.95rem;
+  color: var(--ink-muted);
+  margin: 0 0 1rem 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.ledger-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+}
+
+.nav-link {
+  color: var(--gold-highlight);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--wine);
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--charcoal-light) 0%, var(--charcoal) 100%);
+  box-shadow: var(--shadow-inset), 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.nav-link:hover {
+  background: linear-gradient(180deg, var(--wine-light) 0%, var(--wine) 100%);
+  color: var(--cream);
+  box-shadow: var(--shadow-inset), 0 4px 12px rgba(74, 21, 21, 0.5);
+}
+
+.ledger-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: 50vh;
+}
+
+.ledger-footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  border-top: 2px solid var(--wine-deep);
+  margin-top: 2rem;
+  background: var(--parchment-edge);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Cards: pergamino quemado con bordes oscuros */
+.card {
+  background: linear-gradient(165deg, var(--charcoal-light) 0%, var(--parchment-burned) 40%, var(--charcoal-warm) 100%);
+  border: 2px solid var(--wine-deep);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(212, 175, 55, 0.06);
+  position: relative;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+.card h2, .card h3 {
+  margin-top: 0;
+  color: var(--gold-highlight);
+  font-family: var(--font-decorative);
+  font-size: 1.2rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.card p, .card ul {
+  position: relative;
+  z-index: 0;
+}
+
+/* Badges de casas: estilo sello */
+.house-badge {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  background: linear-gradient(180deg, var(--wine-light) 0%, var(--wine) 50%, var(--wine-deep) 100%);
+  color: var(--gold-highlight);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-seal), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.power-index {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gold-highlight);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7), 0 0 12px rgba(184, 134, 11, 0.3);
+}
+
+/* ——— Botones: sellos reales de cera ——— */
+.btn {
+  font-family: var(--font-stone);
+  font-weight: 600;
+  padding: 0.55rem 1.35rem;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* Sello principal: cera roja */
+.btn-primary {
+  background: linear-gradient(165deg, #7a2828 0%, #5c1a1a 40%, #4a1515 100%);
+  color: var(--cream);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.7),
+    0 3px 8px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.15);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.8),
+    0 4px 10px rgba(92, 26, 26, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Sello secundario: cera oscura/dorada */
+.btn-secondary {
+  background: linear-gradient(165deg, var(--charcoal-light) 0%, var(--charcoal-warm) 50%, var(--charcoal) 100%);
+  color: var(--gold-dim);
+  border: 1px solid var(--wine-deep);
+  box-shadow:
+    0 5px 16px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(212, 175, 55, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.btn-secondary:hover {
+  color: var(--gold-highlight);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(212, 175, 55, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Botón Quitar: sello de cera oscura/sangre */
+.btn-quitar {
+  margin-left: auto;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 50px;
+  background: linear-gradient(165deg, #4a2520 0%, #3d1510 50%, #2d0f0a 100%);
+  color: var(--cream-muted);
+  border: 1px solid var(--blood);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.btn-quitar:hover {
+  color: var(--cream);
+  background: linear-gradient(165deg, var(--wine-light) 0%, var(--wine) 100%);
+  box-shadow:
+    0 5px 16px rgba(139, 37, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Formularios: inputs sobre pergamino quemado */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: var(--ink-muted);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.55rem 0.85rem;
+  font-family: var(--font-stone);
+  font-size: 1rem;
+  border: 2px solid var(--wine-deep);
+  border-radius: 6px;
+  background: var(--charcoal);
+  color: var(--cream);
+  box-shadow: var(--shadow-inset);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--gold-old);
+  box-shadow: var(--shadow-inset), 0 0 0 2px rgba(184, 134, 11, 0.25);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--ink-muted);
+}
+
+.form-group select option {
+  background: var(--charcoal-light);
+  color: var(--cream);
+}
+
+.error-msg {
+  color: #c95a4a;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Listas */
+.list-lords, .list-houses {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-lords li, .list-houses li {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(139, 115, 85, 0.2);
+}
+
+.list-lords a, .list-houses a {
+  color: var(--gold-highlight);
+  text-decoration: none;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.list-lords a:hover, .list-houses a:hover {
+  color: var(--cream);
+  text-decoration: underline;
+}
+
+/* Alianzas entre casas */
+.alliances-intro {
+  color: var(--ink-muted);
+  margin-bottom: 1rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.house-alliances-card {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(165deg, var(--charcoal-warm) 0%, var(--parchment-burned) 100%);
+  border: 2px solid var(--wine-deep);
+  border-radius: 8px;
+  box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(212, 175, 55, 0.04);
+}
+
+.house-alliances-title {
+  margin: 0 0 0.5rem 0;
+  font-family: var(--font-decorative);
+  font-size: 1.1rem;
+  color: var(--gold-highlight);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.house-power-index {
+  margin: 0.35rem 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--cream-muted);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.house-power-index strong {
+  color: var(--gold-highlight);
+}
+
+.house-members {
+  margin: 0.25rem 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.house-alliances-label {
+  font-weight: 600;
+  color: var(--ink-muted);
+  margin: 0.5rem 0 0.35rem 0;
+  font-size: 0.9rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.house-alliances-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem 0;
+}
+
+.house-alliance-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(139, 115, 85, 0.25);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.house-alliance-item:last-child {
+  border-bottom: none;
+}
+
+/* Fuego valyrio: consumir alianza al eliminar */
+.house-alliance-item.valyrian-fire {
+  animation: valyrian-fire-consumed 1.4s ease-in forwards;
+  pointer-events: none;
+}
+
+.house-alliance-item.valyrian-fire::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(
+      ellipse 80% 120% at 50% 50%,
+      rgba(0, 255, 180, 0.5) 0%,
+      rgba(0, 200, 160, 0.4) 25%,
+      rgba(20, 180, 120, 0.35) 50%,
+      rgba(0, 120, 80, 0.2) 70%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 60% 80% at 50% 50%,
+      rgba(100, 255, 220, 0.6) 0%,
+      rgba(0, 220, 180, 0.4) 40%,
+      transparent 70%
+    );
+  opacity: 0;
+  animation: valyrian-flame-overlay 1.4s ease-in 0.2s forwards;
+  pointer-events: none;
+}
+
+.house-alliance-item.valyrian-fire .house-alliance-item-content {
+  position: relative;
+  z-index: 1;
+  animation: valyrian-content-burn 1.4s ease-in forwards;
+}
+
+@keyframes valyrian-fire-consumed {
+  0% {
+    box-shadow: none;
+    opacity: 1;
+    transform: scale(1);
+  }
+  15% {
+    box-shadow: 0 0 20px rgba(0, 220, 180, 0.3), 0 0 40px rgba(0, 180, 140, 0.2);
+  }
+  40% {
+    box-shadow: 0 0 30px rgba(0, 240, 200, 0.5), 0 0 60px rgba(0, 200, 160, 0.3), inset 0 0 30px rgba(0, 255, 200, 0.15);
+  }
+  70% {
+    box-shadow: 0 0 25px rgba(0, 200, 160, 0.4), 0 0 50px rgba(0, 160, 120, 0.25);
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 60px rgba(0, 255, 200, 0.2);
+    opacity: 0;
+    transform: scale(0.96);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom-width: 0;
+  }
+}
+
+@keyframes valyrian-flame-overlay {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  25% {
+    opacity: 0.9;
+    transform: scale(1.1);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0.95;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes valyrian-content-burn {
+  0%, 30% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.95;
+    filter: brightness(1.3) hue-rotate(-15deg);
+  }
+  80% {
+    opacity: 0.4;
+    filter: brightness(2) hue-rotate(-30deg);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(3) hue-rotate(-40deg);
+  }
+}
+
+.alliances-empty-item {
+  font-style: italic;
+  color: var(--ink-muted);
+  padding: 0.35rem 0;
+}
+
+.house-add-alliance {
+  margin-top: 0.5rem;
+}
+
+.form-add-alliance {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  border: 1px solid var(--wine-deep);
+  box-shadow: var(--shadow-inset);
+}

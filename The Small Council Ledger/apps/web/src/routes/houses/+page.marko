@@ -1,0 +1,59 @@
+<div class="card">
+  <h2>Casas del Reino</h2>
+  <p>Listado de casas registradas en el Ledger.</p>
+</div>
+<div id="houses-list">Cargando casas…</div>
+
+<script>
+  function run() {
+    if (typeof document === 'undefined') return;
+    var el = document.getElementById('houses-list');
+    if (!el) return;
+    function escapeHtml(s) {
+      if (s == null) return '';
+      var d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+    function getApiBase() {
+      if (typeof window !== 'undefined' && window.__API_BASE__) return window.__API_BASE__;
+      var body = document.body;
+      if (body && body.getAttribute) {
+        var base = body.getAttribute('data-api-base');
+        if (base) return base;
+      }
+      return 'http://localhost:3000';
+    }
+    var API = getApiBase();
+    el.textContent = 'Cargando casas…';
+    fetch(API + '/api/houses', { method: 'GET', headers: { Accept: 'application/json' } })
+      .then(function(r) {
+        if (!r.ok) throw new Error('API respondió ' + r.status);
+        return r.json();
+      })
+      .then(function(houses) {
+        el = document.getElementById('houses-list');
+        if (!el) return;
+        if (!Array.isArray(houses) || houses.length === 0) {
+          el.innerHTML = '<p class="card">No hay casas registradas.</p>';
+          return;
+        }
+        var html = '<ul class="list-houses">';
+        for (var i = 0; i < houses.length; i++) {
+          var h = houses[i];
+          html += '<li class="card"><span class="house-badge">' + escapeHtml(h.name) + '</span>';
+          if (h.motto) html += ' <em>' + escapeHtml(h.motto) + '</em>';
+          if (h.powerBase != null) html += ' — Base poder: ' + escapeHtml(String(h.powerBase));
+          html += '</li>';
+        }
+        html += '</ul>';
+        el.innerHTML = html;
+      })
+      .catch(function(err) {
+        el = document.getElementById('houses-list');
+        if (el) el.innerHTML = '<p class="error-msg">' + escapeHtml(err.message) + '. ¿Está la API en marcha en ' + escapeHtml(API) + '?</p>';
+      });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+</script>

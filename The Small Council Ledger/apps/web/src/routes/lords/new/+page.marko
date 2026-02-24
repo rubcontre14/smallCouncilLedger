@@ -1,0 +1,105 @@
+<div class="card">
+  <h2>Registrar Lord o Lady</h2>
+  <form id="lord-form">
+    <div class="form-group">
+      <label for="name">Nombre</label>
+      <input id="name" name="name" type="text" required placeholder="Ej. Eddard"/>
+    </div>
+    <div class="form-group">
+      <label for="title">Título</label>
+      <input id="title" name="title" type="text" placeholder="Lord, Lady, etc." value="Lord"/>
+    </div>
+    <div class="form-group">
+      <label for="houseId">Casa</label>
+      <select id="houseId" name="houseId" required>
+        <option value="">— Cargando casas —</option>
+      </select>
+      <small>Si no hay casas, crea la colección en Fauna y ejecuta <code>node scripts/seed-houses.js</code> en apps/api.</small>
+    </div>
+    <p id="form-error" class="error-msg" style="display:none;"></p>
+    <button type="submit" class="btn btn-primary">Guardar en el Ledger</button>
+    <a href="/lords" class="btn btn-secondary" style="margin-left:0.5rem;">Cancelar</a>
+  </form>
+</div>
+
+<script>
+  function getApiBase() {
+    if (typeof window !== 'undefined' && window.__API_BASE__) return window.__API_BASE__;
+    var body = document.body;
+    if (body && body.getAttribute) {
+      var base = body.getAttribute('data-api-base');
+      if (base) return base;
+    }
+    return 'http://localhost:3000';
+  }
+  function escapeHtml(s) {
+    if (s == null) return '';
+    var d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
+  }
+  function run() {
+    if (typeof document === 'undefined') return;
+    var select = document.getElementById('houseId');
+    var form = document.getElementById('lord-form');
+    if (!select || !form) return;
+    var API = getApiBase();
+    fetch(API + '/api/houses', { method: 'GET', headers: { Accept: 'application/json' } })
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(houses) {
+        select = document.getElementById('houseId');
+        if (!select) return;
+        if (!Array.isArray(houses) || houses.length === 0) {
+          select.innerHTML = '<option value="">No hay casas.</option>';
+          return;
+        }
+        var html = '<option value="">Elige una casa</option>';
+        for (var i = 0; i < houses.length; i++) {
+          var h = houses[i];
+          html += '<option value="' + escapeHtml(h.id) + '">' + escapeHtml(h.name);
+          if (h.motto) html += ' — ' + escapeHtml(h.motto);
+          html += '</option>';
+        }
+        select.innerHTML = html;
+      })
+      .catch(function() {
+        select = document.getElementById('houseId');
+        if (select) select.innerHTML = '<option value="">Error al cargar casas</option>';
+      });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var errEl = document.getElementById('form-error');
+      errEl.style.display = 'none';
+      var name = document.getElementById('name').value.trim();
+      var title = document.getElementById('title').value.trim() || 'Lord';
+      var houseId = document.getElementById('houseId').value.trim();
+      if (!name || !houseId) {
+        errEl.textContent = 'Nombre y Casa son obligatorios.';
+        errEl.style.display = 'block';
+        return;
+      }
+      var api = getApiBase();
+      fetch(api + '/api/lords', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, title: title, houseId: houseId }),
+      })
+        .then(function(res) { return res.json().catch(function() { return {}; }).then(function(data) { return { res: res, data: data }; }); })
+        .then(function(obj) {
+          if (!obj.res.ok) {
+            errEl.textContent = obj.data.message || obj.data.error || 'Error al crear.';
+            errEl.style.display = 'block';
+            return;
+          }
+          window.location.href = '/lords';
+        })
+        .catch(function(err) {
+          errEl.textContent = err.message || 'Error de conexión.';
+          errEl.style.display = 'block';
+        });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+</script>

@@ -1,0 +1,225 @@
+<div class="card">
+  <h2>Bienvenido al Ledger</h2>
+  <p>En este libro se registran las lealtades y traiciones entre las casas de los Siete Reinos.</p>
+  <ul>
+    <li><a href="/houses">Ver casas</a></li>
+    <li><a href="/lords">Ver Lords y Ladies</a></li>
+    <li><a href="/lords/new">Registrar un nuevo Lord o Lady</a></li>
+  </ul>
+</div>
+<div class="card" id="alliances-map-card">
+  <h3>Alianzas entre casas</h3>
+  <p class="alliances-intro">Cada casa muestra sus aliados y el <strong>Índice de Poder</strong> de sus lords. Añadir alianza: <strong>+5 puntos</strong>. Quitar alianza: <strong>-10 puntos</strong>.</p>
+  <div id="alliances-map">Cargando alianzas…</div>
+</div>
+
+<script>
+  function getApiBase() {
+    if (typeof window !== 'undefined' && window.__API_BASE__) return window.__API_BASE__;
+    var body = document.body;
+    if (body && body.getAttribute) {
+      var base = body.getAttribute('data-api-base');
+      if (base) return base;
+    }
+    return 'http://localhost:3000';
+  }
+  function escapeHtml(s) {
+    if (s == null) return '';
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+  function loadAlliancesSection() {
+    var container = document.getElementById('alliances-map');
+    if (!container) return;
+    var API = getApiBase();
+    container.textContent = 'Cargando alianzas…';
+    Promise.all([
+      fetch(API + '/api/houses', { method: 'GET', headers: { Accept: 'application/json' } }).then(function(r) { return r.ok ? r.json() : []; }),
+      fetch(API + '/api/lords', { method: 'GET', headers: { Accept: 'application/json' } }).then(function(r) { return r.ok ? r.json() : []; }),
+      fetch(API + '/api/alliances', { method: 'GET', headers: { Accept: 'application/json' } }).then(function(r) { return r.ok ? r.json() : []; }),
+    ])
+      .then(function(results) {
+        var houses = results[0];
+        var lords = results[1];
+        var alliances = results[2];
+        return Promise.all((lords || []).map(function(l) {
+          if (!l || !l.id) return Promise.resolve(null);
+          return fetch(API + '/api/lords/' + l.id + '/power-index', { headers: { Accept: 'application/json' } }).then(function(r) { return r.ok ? r.json() : null; });
+        })).then(function(powerResults) {
+          var powerByLordId = {};
+          if (Array.isArray(lords)) {
+            for (var i = 0; i < lords.length; i++) {
+              if (lords[i] && lords[i].id && powerResults[i]) powerByLordId[lords[i].id] = powerResults[i].powerIndex;
+            }
+          }
+          return { houses: houses, lords: lords, alliances: alliances, powerByLordId: powerByLordId };
+        });
+      })
+      .then(function(data) {
+        var houses = data.houses;
+        var lords = data.lords;
+        var alliances = data.alliances;
+        var powerByLordId = data.powerByLordId;
+        container = document.getElementById('alliances-map');
+        if (!container) return;
+        var housesById = {};
+        if (Array.isArray(houses)) {
+          for (var h = 0; h < houses.length; h++) {
+            if (houses[h] && houses[h].id) housesById[houses[h].id] = houses[h].name;
+          }
+        }
+        var lordsById = {};
+        var lordsByHouse = {};
+        if (Array.isArray(lords)) {
+          for (var l = 0; l < lords.length; l++) {
+            var lord = lords[l];
+            if (lord && lord.id) {
+              lordsById[lord.id] = lord;
+              var hid = lord.houseId;
+              if (hid) {
+                if (!lordsByHouse[hid]) lordsByHouse[hid] = [];
+                lordsByHouse[hid].push(lord);
+              }
+            }
+          }
+        }
+        var alliancesByHouse = {};
+        if (Array.isArray(alliances)) {
+          for (var a = 0; a < alliances.length; a++) {
+            var al = alliances[a];
+            var h1 = al.houseId;
+            var h2 = al.targetHouseId;
+            if (!h1 || !h2) continue;
+            var name1 = housesById[h1] || h1;
+            var name2 = housesById[h2] || h2;
+            if (!alliancesByHouse[h1]) alliancesByHouse[h1] = [];
+            if (!alliancesByHouse[h2]) alliancesByHouse[h2] = [];
+            alliancesByHouse[h1].push({ id: al.id, otherHouseName: name2, otherHouseId: h2 });
+            if (h1 !== h2) alliancesByHouse[h2].push({ id: al.id, otherHouseName: name1, otherHouseId: h1 });
+          }
+        }
+        var html = '';
+        for (var hi = 0; hi < houses.length; hi++) {
+          var house = houses[hi];
+          if (!house || !house.id) continue;
+          var houseId = house.id;
+          var houseName = house.name;
+          var list = alliancesByHouse[houseId] || [];
+          var ourLords = lordsByHouse[houseId] || [];
+          var otherHouses = [];
+          for (var hi2 = 0; hi2 < houses.length; hi2++) {
+            if (houses[hi2] && houses[hi2].id && houses[hi2].id !== houseId) otherHouses.push(houses[hi2]);
+          }
+          html += '<div class="house-alliances-card" data-house-id="' + escapeHtml(houseId) + '">';
+          html += '<h4 class="house-alliances-title"><span class="house-badge">' + escapeHtml(houseName) + '</span></h4>';
+          var housePowerSum = 0;
+          var housePowerCount = 0;
+          for (var pi = 0; pi < ourLords.length; pi++) {
+            var pval = powerByLordId[ourLords[pi].id];
+            if (pval != null) { housePowerSum += pval; housePowerCount++; }
+          }
+          var housePowerIndex = housePowerCount ? Math.round(housePowerSum / housePowerCount) : null;
+          if (housePowerIndex != null) html += '<p class="house-power-index">Índice de poder de la casa: <strong>' + housePowerIndex + '</strong></p>';
+          var memberNames = [];
+          for (var mi = 0; mi < ourLords.length; mi++) {
+            var ml = ourLords[mi];
+            memberNames.push(escapeHtml((ml.title || 'Lord') + ' ' + ml.name));
+          }
+          if (memberNames.length) html += '<p class="house-members">Miembros: ' + memberNames.join(', ') + '</p>';
+          html += '<p class="house-alliances-label">Alianzas con otras casas:</p>';
+          html += '<ul class="house-alliances-list">';
+          if (list.length === 0) {
+            html += '<li class="alliances-empty-item">Ninguna alianza aún.</li>';
+          } else {
+            for (var ai = 0; ai < list.length; ai++) {
+              var item = list[ai];
+              html += '<li class="house-alliance-item">';
+              html += '<span class="house-alliance-item-content">' + escapeHtml(houseName) + ' ⟷ <span class="house-badge">' + escapeHtml(item.otherHouseName) + '</span> <button type="button" class="btn btn-quitar" data-alliance-id="' + escapeHtml(item.id) + '" data-action="quitar">Quitar</button></span>';
+              html += '</li>';
+            }
+          }
+          html += '</ul>';
+          html += '<div class="house-add-alliance">';
+          html += '<button type="button" class="btn btn-secondary btn-toggle-add" data-house-id="' + escapeHtml(houseId) + '">Añadir alianza</button>';
+          html += '<form class="form-add-alliance" data-house-id="' + escapeHtml(houseId) + '" style="display:none;">';
+          html += '<div class="form-group"><label>Casa aliada</label><select name="targetHouseId" required>';
+          for (var ohi = 0; ohi < otherHouses.length; ohi++) {
+            var oh = otherHouses[ohi];
+            html += '<option value="' + escapeHtml(oh.id) + '">' + escapeHtml(oh.name) + '</option>';
+          }
+          html += '</select></div>';
+          html += '<button type="submit" class="btn btn-primary">Crear alianza</button> <button type="button" class="btn btn-secondary btn-cancel-add">Cancelar</button>';
+          html += '</form></div>';
+          html += '</div>';
+        }
+        container.innerHTML = html;
+        container.querySelectorAll('[data-action="quitar"]').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var id = this.getAttribute('data-alliance-id');
+            if (!id) return;
+            var row = this.closest('.house-alliance-item');
+            if (!row) return;
+            row.classList.add('valyrian-fire');
+            function doDelete() {
+              fetch(API + '/api/alliances/' + id, { method: 'DELETE' })
+                .then(function(r) {
+                  if (r.ok || r.status === 204) {
+                    row.remove();
+                    var list = row.parentElement;
+                    if (list && list.classList.contains('house-alliances-list') && list.children.length === 0) {
+                      var empty = document.createElement('li');
+                      empty.className = 'alliances-empty-item';
+                      empty.textContent = 'Ninguna alianza aún.';
+                      list.appendChild(empty);
+                    }
+                  } else { loadAlliancesSection(); }
+                })
+                .catch(function() { loadAlliancesSection(); });
+            }
+            row.addEventListener('animationend', function handler() {
+              row.removeEventListener('animationend', handler);
+              doDelete();
+            });
+          });
+        });
+        container.querySelectorAll('.btn-toggle-add').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var houseId = this.getAttribute('data-house-id');
+            var form = container.querySelector('.form-add-alliance[data-house-id="' + houseId + '"]');
+            if (form) { form.style.display = form.style.display === 'none' ? 'block' : 'none'; }
+          });
+        });
+        container.querySelectorAll('.btn-cancel-add').forEach(function(btn) {
+          btn.addEventListener('click', function() { this.closest('.form-add-alliance').style.display = 'none'; });
+        });
+        container.querySelectorAll('.form-add-alliance').forEach(function(form) {
+          form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var houseId = this.getAttribute('data-house-id');
+            var targetHouseId = this.querySelector('[name="targetHouseId"]').value;
+            if (!houseId || !targetHouseId) return;
+            fetch(API + '/api/alliances', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ houseId: houseId, targetHouseId: targetHouseId }),
+            })
+              .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+              .then(function(obj) {
+                if (obj.ok) { loadAlliancesSection(); form.style.display = 'none'; }
+              });
+          });
+        });
+      })
+      .catch(function(err) {
+        container = document.getElementById('alliances-map');
+        if (container) container.innerHTML = '<p class="error-msg">' + escapeHtml(err.message) + '</p>';
+      });
+  }
+  function run() {
+    if (typeof document === 'undefined') return;
+    loadAlliancesSection();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+</script>
